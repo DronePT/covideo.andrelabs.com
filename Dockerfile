@@ -33,7 +33,9 @@ WORKDIR /opt/app
 
 COPY --from=dependencies /opt/production_node_modules ./node_modules
 COPY --from=dependencies /opt/package.json .
-RUN mv /opt/dist /opt/app/dist
+RUN \
+  mv /opt/dist /opt/app/dist && \
+  mv /opt/public /opt/app/public
 
 # ---------------------------- #
 # ------ RELEASE STAGE ------- #
