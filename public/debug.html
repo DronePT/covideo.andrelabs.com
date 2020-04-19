@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>socket.io debug</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+
+  <style>
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    * {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      padding: 1rem;
+
+      font-size: 16px;
+    }
+
+    input,
+    button {
+      font-size: 1rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: solid 1px #e1e2e3;
+    }
+
+    pre {
+      background: #fffae9;
+      padding: 2rem;
+      border-radius: 1rem;
+      font-weight: 300;
+      font-size: .9rem;
+      line-height: 1rem;
+      border: solid 1px #e8d1af;
+      box-shadow: 0 11px 16px -8px rgba(0, 0, 0, .08);
+    }
+
+    pre div {
+      border-bottom: solid 1px #00000021;
+      padding: 1rem;
+    }
+
+    pre div:last-child {
+      border-bottom: none;
+    }
+
+    .message-container {
+      margin-top: 1rem;
+
+      display: flex;
+    }
+
+    .message-container input {
+      flex: 1;
+      margin-right: 0.5rem;
+    }
+
+    #channel {
+      min-width: 400px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <input type="text" id="channel" value="room-id">
+    <input type="text" id="userName" value="">
+    <button id="btnJoinChannel">Join channel</button>
+  </div>
+
+  <div class="message-container">
+    <input type="text" id="message" value='{"event": "message"}'>
+    <button id="btnSetProgressMessage">set progerss message</button>
+    <button id="btnSendMessage">Send message</button>
+  </div>
+
+  <pre class="debug"></pre>
+</body>
+
+<script type="text/javascript">
+  const $ = function (selector) {
+    return document.querySelector(selector);
+  }
+
+  const debugMessages = [];
+
+  window.addEventListener("load", function () {
+    const socket = io('localhost:8080');
+
+    const debug = $('.debug');
+
+    const socketEmitsHandler = (data) => {
+      const message = document.createElement('div');
+
+      const text = JSON.stringify({ data }, null, 2);
+
+      message.innerText = text
+
+      const first = document.querySelector('.debug div:first-child');
+
+      if (!first) {
+        debug.appendChild(message);
+        return;
+      }
+
+      debug.insertBefore(message, first)
+    }
+
+    socket.on('welcome', socketEmitsHandler);
+    socket.on('message', socketEmitsHandler);
+
+    const inputChannel = $('#channel');
+    const inputMessage = $('#message');
+    const inputUserName = $('#userName');
+
+    $('#btnJoinChannel').addEventListener('click', function () {
+      socket.emit('join-channel', {
+        channel: inputChannel.value,
+        userName: inputUserName.value
+      });
+    });
+
+    $('#btnSendMessage').addEventListener('click', function () {
+      socket.emit('message', inputMessage.value);
+    });
+
+    $('#btnSetProgressMessage').addEventListener('click', function () {
+      const data = {
+        event: 'download-progress',
+        data: {
+          progress: 56
+        }
+      }
+
+      inputMessage.value = JSON.stringify(data);
+    });
+  });
+</script>
+
+</html>
